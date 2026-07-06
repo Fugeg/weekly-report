@@ -1,0 +1,37 @@
+{
+  "report": {
+    "defaultDateRange": "this_week",
+    "sections": [
+      "本周工作总结（结果及关键里程碑）",
+      "本周遇到的问题及阻塞点",
+      "问题解决方案",
+      "下周工作计划（时间节点及行动计划）",
+      "收获与反思"
+    ],
+    "outputDirectory": "~/Desktop/周报",
+    "filenameTemplate": "{endDate}-周报.md"
+  },
+  "scan": {
+    "maxProjects": 50,
+    "maxRecursionDepth": 3,
+    "filesystemRoots": [
+      "C:\\Users\\Administrator\\Desktop",
+      "E:\\AI"
+    ],
+    "claudeProjectsPath": "C:\\Users\\Administrator\\.claude\\projects",
+    "zcodeLogPath": "C:\\Users\\Administrator\\.zcode\\cli\\log",
+    "traeConfigPath": "C:\\Users\\Administrator\\.trae"
+  },
+  "projectMarkers": [
+    ".git",
+    "package.json",
+    "pyproject.toml",
+    "setup.py",
+    "requirements.txt",
+    "Cargo.toml",
+    "go.mod",
+    "pom.xml",
+    "build.gradle",
+    "README.md"
+  ]
+}
