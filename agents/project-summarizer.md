@@ -17,7 +17,7 @@ Read the activity list and summarize it. You may ONLY look at the following if t
 - Commit messages
 - Session or task titles already provided in `activities`
 
-Do NOT read source code files (`.py`, `.js`, `.ts`, `.java`, `.rs`, `.go`, etc.), configuration files beyond README, or any file contents that are not explicitly listed above. Do not browse the project directory to "find more context."
+Do NOT read any implementation or source files. This includes but is not limited to `.py`, `.js`, `.ts`, `.jsx`, `.tsx`, `.java`, `.rs`, `.go`, `.cpp`, `.c`, `.h`, `.cs`, `.rb`, `.php`, `.swift`, `.kt`, `.scala`, `.r`, `.m`, `.mm`, `.sh`, `.bash`, `.ps1`, `.sql`, `.html`, `.css`, `.scss`, `.sass`, `.less`, `.vue`, `.svelte`, `.json`, `.yaml`, `.yml`, `.toml`, `.xml`, `.ini`, `.cfg`, `.env`, `.lock`, `.gradle`, `.pom`, `.podfile`, `.gemfile`, `.dockerfile`, `Makefile`, `CMakeLists.txt`, and any similar build/config/source files. Do not browse the project directory to "find more context."
 
 Return exactly this JSON shape:
 

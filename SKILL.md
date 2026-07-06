@@ -42,7 +42,7 @@ Default: `this-week` (本周一至今).
 7. **Save and report**
    - Ensure `~/Desktop/周报` exists.
    - Write the Markdown to `~/Desktop/周报/{endDate}-周报.md`.
-   - If the file already exists, append `-2` (or `-3`, etc.) before overwriting.
+   - If the file already exists, use a suffixed name before the extension, e.g. `2026-07-06-周报-2.md`, `2026-07-06-周报-3.md`, etc.
    - Reply to the user with:
      - The saved file path
      - A brief summary of which tools contributed and how many projects were summarized

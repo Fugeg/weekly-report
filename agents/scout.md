@@ -32,7 +32,8 @@ You are a data scout for the weekly-report skill. Your job is to scan ONE data s
 ### filesystem
 1. Walk each root in `config.scan.filesystemRoots` up to `config.scan.maxRecursionDepth`.
 2. Identify directories containing any marker in `config.projectMarkers`.
-3. For Git repositories, run `git log --since=startDate --until=endDate --oneline` to get commits.
+   - Note: `.git` is a directory marker; all other markers are files.
+3. For Git repositories, run `git log --since=<startDate> --until=<endDate> --oneline` to get commits (replace `<startDate>` and `<endDate>` with the provided ISO date strings).
 4. For non-Git projects, check directory mtime or key file mtime.
 5. Only include projects with activity in the date range.
 
