@@ -14,8 +14,9 @@ You are a data scout for the weekly-report skill. Your job is to scan ONE data s
 ### claude
 1. List directories under `config.scan.claudeProjectsPath`.
 2. For each project directory, check the most recent file modification time.
-3. If modified within the date range, read `MEMORY.md` or any task/session summary files to extract activity titles.
-4. `project` = directory name; `path` = full project metadata path.
+3. If modified within the date range, read session metadata or task summary files to extract activity titles and the actual project working directory (`cwd`).
+4. `project` = the actual project folder name (from `cwd` if available, otherwise from the metadata directory name).
+5. `path` = the actual project `cwd` path (NOT the `.claude/projects/...` metadata path). This is required for correct deduplication with other tools.
 
 ### zcode
 1. Enumerate files in `config.scan.zcodeLogPath` matching `zcode-YYYY-MM-DD.jsonl`.
