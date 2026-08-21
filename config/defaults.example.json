@@ -1,0 +1,50 @@
+{
+  "report": {
+    "defaultDateRange": "this_week",
+    "sections": [
+      "本周工作总结（结果及关键里程碑）",
+      "本周遇到的问题及阻塞点",
+      "问题解决方案",
+      "下周工作计划（时间节点及行动计划）",
+      "收获与反思"
+    ],
+    "outputDirectory": "~/Desktop/周报",
+    "filenameTemplate": "{endDate}-周报.md",
+    "projectSelection": "ask"
+  },
+  "scan": {
+    "maxProjects": 50,
+    "maxRecursionDepth": 3,
+    "filesystemRoots": [
+      "~/Desktop",
+      "~/projects"
+    ],
+    "userHomePath": "~",
+    "claudeProjectsPath": "~/.claude/projects",
+    "codexSessionsPath": "~/.codex/sessions",
+    "kimiSessionIndexPath": "~/.kimi-code/session_index.jsonl",
+    "kimiSessionsPath": "~/.kimi-code/sessions",
+    "zcodeLogPath": "~/.zcode/cli/log",
+    "traeConfigPath": "~/.trae",
+    "cursorProjectsPath": "~/.cursor/projects",
+    "cursorAgentStatePath": "~/.cursor/agent-cli-state.json",
+    "copilotLogsPath": "~/.copilot/logs",
+    "deepseekSessionsPath": "~/.deepseek/sessions",
+    "geminiConversationsPath": "~/.gemini/antigravity/conversations",
+    "remoteRoots": [
+      { "host": "your-host", "user": "user", "root": "~/your-project", "enabled": false }
+    ]
+  },
+  "projectMarkers": [
+    ".git",
+    "package.json",
+    "pyproject.toml",
+    "setup.py",
+    "requirements.txt",
+    "Cargo.toml",
+    "go.mod",
+    "pom.xml",
+    "build.gradle",
+    "README.md"
+  ]
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Weekly Report"
+  short_description: "Scan coding tools and write this week's work report"
+  default_prompt: "Use $weekly-report to generate this week's Markdown work report."
+
+policy:
+  allow_implicit_invocation: true
