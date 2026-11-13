@@ -3,24 +3,71 @@
     "defaultDateRange": "this_week",
     "sections": [
       "本周工作总结（结果及关键里程碑）",
-      "本周遇到的问题及阻塞点",
-      "问题解决方案",
-      "下周工作计划（时间节点及行动计划）",
-      "收获与反思"
+      "问题与处理",
+      "下周工作计划",
+      "收获与反思（有具体依据时保留）"
     ],
     "outputDirectory": "~/Desktop/周报",
-    "filenameTemplate": "{endDate}-周报.md"
+    "filenameTemplate": "{endDate}-周报.md",
+    "projectSelection": "auto",
+    "timezone": "Asia/Shanghai",
+    "audience": "直属负责人",
+    "targetChineseCharacters": {
+      "min": 600,
+      "max": 1000,
+      "mode": "soft"
+    },
+    "saveLocalFile": true,
+    "copyToDesktop": true,
+    "preview": "key_outcomes"
   },
   "scan": {
     "maxProjects": 50,
     "maxRecursionDepth": 3,
     "filesystemRoots": [
       "C:\\Users\\Administrator\\Desktop",
-      "E:\\AI"
+      "E:\\AI",
+      "E:\\AI-project"
     ],
     "claudeProjectsPath": "C:\\Users\\Administrator\\.claude\\projects",
+    "codexSessionsPath": "C:\\Users\\Administrator\\.codex\\sessions",
+    "kimiSessionIndexPath": "C:\\Users\\Administrator\\.kimi-code\\session_index.jsonl",
+    "kimiSessionsPath": "C:\\Users\\Administrator\\.kimi-code\\sessions",
     "zcodeLogPath": "C:\\Users\\Administrator\\.zcode\\cli\\log",
-    "traeConfigPath": "C:\\Users\\Administrator\\.trae"
+    "traeConfigPath": "C:\\Users\\Administrator\\.trae",
+    "cursorProjectsPath": "C:\\Users\\Administrator\\.cursor\\projects",
+    "copilotLogsPath": "C:\\Users\\Administrator\\.copilot\\logs",
+    "deepseekSessionsPath": "C:\\Users\\Administrator\\.deepseek\\sessions",
+    "geminiConversationsPath": "C:\\Users\\Administrator\\.gemini\\antigravity\\conversations",
+    "userHomePath": "C:\\Users\\Administrator",
+    "remoteRoots": [
+      {
+        "host": "1.116.108.25",
+        "user": "fuge",
+        "root": "~/Ai-project",
+        "enabled": true
+      }
+    ],
+    "primarySources": [
+      "codex",
+      "kimi"
+    ],
+    "supplementalSources": [
+      "filesystem",
+      "cursor"
+    ],
+    "onDemandSources": [
+      "claude",
+      "zcode",
+      "trae",
+      "copilot",
+      "deepseek",
+      "gemini",
+      "remote"
+    ],
+    "remoteMode": "on_request_or_evidence",
+    "includeResumedSessions": true,
+    "codexSessionIndexPath": "C:\\Users\\Administrator\\.codex\\session_index.jsonl"
   },
   "projectMarkers": [
     ".git",
@@ -33,5 +80,6 @@
     "pom.xml",
     "build.gradle",
     "README.md"
-  ]
+  ],
+  "version": "2.1"
 }
