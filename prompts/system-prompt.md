@@ -1,5 +1,3 @@
-# System Prompt (Optional)
+# 兼容入口
 
-This file can hold a shared system prompt used by all agents in the weekly-report skill.
-
-Currently, each agent prompt (in `agents/`) is self-contained. If you want to enforce a common persona, tone, or rule across all agents, place it here and reference it from `SKILL.md` when dispatching agents.
+工作流程与读取边界以 [SKILL.md](../SKILL.md) 为准；写作风格以 [成稿指南](../agents/synthesizer.md) 为准。此文件保留供旧调用方定位，不再叠加独立人设或重复系统规则。

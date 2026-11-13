@@ -1,114 +1,65 @@
-# Scout Agent
+# 工作记录读取指南
 
-You are a data scout for the weekly-report skill. Your job is to scan ONE data source and return a JSON array of project activities found within the requested date range.
+用于发现候选活动和提取本周事实。优先 Codex、Kimi Code；按实际线索补充来源。读取配置中的路径，路径不存在或记录格式变化时保留准确的覆盖状态。
 
-## Input you will receive
+## 两阶段读取
 
-- `tool`: one of `claude`, `codex`, `kimi`, `zcode`, `trae`, `cursor`, `copilot`, `deepseek`, `gemini`, `filesystem`, `remote`
-- `startDate`: ISO date string, e.g. `2026-07-01`
-- `endDate`: ISO date string, e.g. `2026-07-06`
-- `config`: the contents of `config/defaults.json`
+1. **发现候选**：索引、元数据、转录文件更新时间与明确的项目线索。既检查本周新会话，也检查旧会话本周续作。目录更新时间可能不随内部转录变化，需结合主转录或状态元数据判断。
+2. **核验活动**：用范围内的消息时间筛选用户请求、助手最终答复、关键执行结果和回合结束状态。标题帮助定位，成果以实际讨论内容与结果为准。
 
-## Tool-specific instructions
+先取最近的少量相关回合，有状态冲突或结果缺失时再向前定位。摘要文本不完整时补读目标回合，不一次打印整份日志。配置的数量与目录深度上限用于控制读取批次；触及上限且仍有相关项目时继续分批，或明确说明覆盖范围，不静默丢弃剩余工作。
 
-### claude
-1. List directories under `config.scan.claudeProjectsPath`.
-2. For each project directory, check the most recent file modification time.
-3. If modified within the date range, read session metadata or task summary files to extract activity titles and the actual project working directory (`cwd`).
-4. `project` = the actual project folder name (from `cwd` if available, otherwise from the metadata directory name).
-5. `path` = the actual project `cwd` path (NOT the `.claude/projects/...` metadata path). This is required for correct deduplication with other tools.
+内部保留 `source`、`session_id`、`time`、`project_hint`、`intent`、`result`、`completion_state`、`locator`、`limits`；字段可按实际任务简化。`locator` 是会话/回合 ID，或转录路径与行号。中间文件放当前任务的工作目录。
 
-### codex
-1. Sessions live under `config.scan.codexSessionsPath` in a date hierarchy: `YYYY/MM/DD/rollout-YYYY-MM-DDTHH-MM-SS-<uuid>.jsonl`. Enumerate only the date directories within the range.
-2. For each rollout file, read ONLY the first line and parse it as JSON: `type == "session_meta"`, `payload.cwd`, `payload.timestamp`, `payload.originator`.
-3. To get a title, you may read up to 5 more lines looking for the first user message text. Do NOT read the whole file.
-4. `project` = folder name of `payload.cwd`; `path` = `payload.cwd` (the real working directory, required for dedup).
-5. Skip sessions whose `cwd` equals `config.scan.userHomePath` — those are scratch sessions, not projects.
+## Codex
 
-### kimi
-1. Read `config.scan.kimiSessionIndexPath` (JSONL). Each line has `sessionId`, `sessionDir`, `workDir`.
-2. For each line, check the modification time of `sessionDir` (a directory under `config.scan.kimiSessionsPath`). Keep sessions modified within the date range.
-3. If the index file is missing, fall back to listing `config.scan.kimiSessionsPath/wd_*/session_*` directories directly and filter by mtime; the `wd_*` parent name encodes the working directory.
-4. `project` = folder name of `workDir`; `path` = `workDir`.
-5. Skip sessions whose `workDir` equals `config.scan.userHomePath` — those are scratch sessions, not projects.
+### 发现
 
-### zcode
-1. Enumerate files in `config.scan.zcodeLogPath` matching `zcode-YYYY-MM-DD.jsonl`.
-2. Only read files whose date is within the range.
-3. Parse each line as JSON; extract `project`/`cwd`, `title`, and `timestamp` if present.
-4. If JSON schema is unknown, read the first 20 lines to infer fields.
+- 可用时使用桌面会话列表、读取工具获得标题和历史。列表可能只返回最近一页、混有其他来源，不能把一个有限列表当成本周完整清单；参数以实际工具约束为准。
+- 本地从 `codexSessionIndexPath` 和 `codexSessionsPath` 获取候选。索引通常含会话 ID、标题及更新时间；rollout 首行的 `session_meta.payload` 提供实际 `cwd`、创建时间、来源及父会话线索。
+- 本周日期目录之外，补查本周更新的旧 rollout。更新时间筛选只缩小范围，是否计入由内部事件时间决定。
+- 将子 Agent 记录关联到父任务，避免把每个子会话当成独立项目或重复成果。
 
-### trae
-1. Read Trae config/state files under `config.scan.traeConfigPath` to find recently opened workspace paths.
-2. For each workspace path, check if the project directory was modified this week.
-3. If Trae config cannot be parsed, return `status: "failed"` with `notes` explaining the limitation.
+### 提取
 
-### cursor
-1. List subdirectories of `config.scan.cursorProjectsPath`. Ignore names starting with `.` (e.g. `.agent-data-cleanup-*` backup dirs).
-2. Keep project directories whose mtime is within the date range.
-3. Try to resolve the real workspace path from `config.scan.cursorAgentStatePath` (if set) and any small metadata files inside the project directory (e.g. under `terminals/`) for a cwd/workspace hint.
-4. If the workspace path cannot be resolved, include the entry with `status: "partial"`, `path` = the `.cursor/projects/<id>` directory, and a `notes` explanation.
+- 使用会话读取工具时，在编排层先筛选再输出：保留回合时间、用户文本、`agentMessage` 中的最终答复及必要的结果摘要。某些工具即使关闭 outputs 仍返回命令、推理和工具事件；这些事件整体留在工具结果中，向上下文只输出筛选后的短摘要。
+- 工具遇到单个过大回合或历史上限时，改为流式解析对应 JSONL。仅保留需要的事件类型与时间范围，不把整份文件加载为报告材料。
+- 常见文本在 `response_item` 的 message（`role`、`phase`、`content`）及 `event_msg` 的 user/agent message、task complete 中。按实际字段识别最终答复，跳过隐藏推理、系统提示和原始工具内容；同一消息的两种表示去重。
+- 工具完成、回合结束与业务完成分别记录。最终答复可作为成果陈述；涉及发布、写入或性能收益的强结论，再核对目标回执、交付物或已有验证摘要。
 
-### copilot
-1. Enumerate `process-*.log` files under `config.scan.copilotLogsPath`, filtered by mtime within the date range.
-2. Grep the logs for workspace/cwd hints (e.g. lines containing `workspace` or an absolute path).
-3. If no workspace can be extracted, return one item with `status: "partial"` and `notes` explaining that Copilot logs do not record project directories reliably.
+## Kimi Code
 
-### deepseek
-1. List `config.scan.deepseekSessionsPath`. If it is empty or missing, return `[]`.
-2. Otherwise parse session metadata files for working directory and timestamps, filter by the date range, and extract activities.
+### 发现
 
-### gemini
-1. List `config.scan.geminiConversationsPath` (Antigravity IDE conversation records). If empty or missing, return `[]`.
-2. Filter by mtime within the date range; extract the workspace path from conversation metadata if recorded.
-3. If the workspace cannot be resolved, use `status: "partial"` with a `notes` explanation.
+- 读取 `kimiSessionIndexPath`；常见字段为 `sessionId`、`sessionDir`、`workDir`。索引缺失时从 `kimiSessionsPath` 查找实际会话目录，路径编码只能作为线索。
+- 将索引与会话状态、主转录更新时间结合，覆盖旧会话续作。根目录、用户目录或泛化工作目录中的会话也可能包含正式工作，根据内容拆分归属。
+- 读取主 Agent 转录，按实际布局定位；当前可见布局包括 `agents/main/wire.jsonl`。状态文件和转录结构可能随版本变化，先小样本确认字段再提取。
 
-### filesystem
-1. Walk each root in `config.scan.filesystemRoots` up to `config.scan.maxRecursionDepth`.
-2. Identify directories containing any marker in `config.projectMarkers`.
-   - Note: `.git` is a directory marker; all other markers are files.
-3. For Git repositories, run `git log --since=<startDate> --until=<endDate> --oneline` to get commits (replace `<startDate>` and `<endDate>` with the provided ISO date strings).
-4. For non-Git projects, check directory mtime or key file mtime.
-5. Only include projects with activity in the date range.
+### 提取
 
-### remote
-1. Iterate over `config.scan.remoteRoots` and process entries where `enabled` is `true`.
-2. For each entry, test connectivity first: `ssh -o BatchMode=yes -o ConnectTimeout=8 <user>@<host> "echo ok"`.
-   - If this fails, return one ScoutResult with `status: "failed"` and `notes` explaining that key-based auth is not configured (e.g. "请运行 ssh-copy-id -i ~/.ssh/id_ed25519.pub user@your-host 配置免密登录"), then continue with the next remote root.
-3. Resolve the remote root to an absolute path: `ssh ... "cd <root> && pwd"`.
-4. List subdirectories under the remote root: `ssh ... "ls -1 <abs_root>"`.
-5. For each subdirectory that is a project (contains any marker from `config.projectMarkers`):
-   - If it contains `.git`, run `ssh ... "git -C <dir> log --since=<startDate> --until=<endDate> --oneline"`.
-   - Otherwise, check whether any file was modified in range using `ssh ... "find <dir> -maxdepth 2 -type f -newermt '<startDate>' ! -newermt '<endDate_next_day>'"`.
-6. Only include projects with activity in the date range.
-7. `project` = the remote folder name; `path` = `<user>@<host>:<abs_dir>` (e.g. `user@host:/home/user/project`). This format prevents collisions with local paths during deduplication.
+- 当前可见 wire 事件包括 `agent.message.appended`、`agent.turn.started`、`agent.turn.ended`，时间字段常为 `time`；消息字段包含角色、内容，回合结束可能包含 `outcome`。
+- 只选用户和助手的可见文本，结合最终答复与结束状态整理。先查看消息结构，再按实际 `message` 字段提取，避免假设所有版本相同。
+- `done/completed` 说明回合结束，仍需看实际交付。`aborted/failed` 也不代表此前完成的文档或本地修改全部失效：已有证据支持到哪一阶段，就写到哪一阶段；缺少后续结果则保留未验边界。
+- 标题和首条请求可能与最后工作不同。按本周实际成果拆主题，并与 Codex 中同项目的后续发布、修复记录合并。
+- 环境发现、自检和通用运行时会话只记覆盖情况；出现实质工作内容时再归入成果。
 
-## Output schema
+## Git 与项目目录
 
-```json
-[
-  {
-    "tool": "claude | codex | kimi | zcode | trae | cursor | copilot | deepseek | gemini | filesystem | remote",
-    "project": "human-readable project name",
-    "path": "absolute path to the project or session",
-    "activities": [
-      {
-        "type": "session | commit | edit | task",
-        "title": "short title",
-        "time": "2026-07-06T14:30:00+08:00",
-        "summary": "one sentence describing what happened"
-      }
-    ],
-    "status": "ok | partial | failed",
-    "notes": "failure or fallback explanation, empty if ok"
-  }
-]
-```
+先检查会话已指向的项目，再按需扫描 `filesystemRoots`；跳过依赖目录、虚拟环境和 Git 内部。以仓库根区分项目，嵌套的 docs/web 不重复列项。
 
-## Rules
+- 必要时读取当前分支与全部已有本地 refs 的本周日志：`git log --all --since=<start> --until=<exclusive_end> --format=...`。当前 checkout 可能停在旧分支，单读 HEAD 会漏掉本周已在其他引用上的提交。
+- 作者日期与提交日期分别核对，复杂情况取明确的事件时间；以保存的 hash 定位。默认只读本地，不 fetch 或切换工作树。
+- 使用 Git common directory 识别共享对象库的工作树。实现、合并、squash 记录按同一成果去重；Git 作者也不能单独证明属于用户贡献。
+- 文件存在可以支持交付物存在，mtime 只能提示变化。源码改动、测试、部署及真实业务成功分别找对应结果。
 
-- Do NOT read full source code files. Only session metadata, commit logs, file modification times, or tool logs.
-- If the data source is unreadable, return one item with `status: "failed"` and a helpful `notes` string.
-- If no activities are found, return an empty array `[]`.
-- Normalize project paths using absolute paths for deduplication later.
-- Do NOT hardcode machine IPs, usernames, or home paths; always read them from `config`.
+## 补充来源
+
+Cursor 从实际项目的 `agent-transcripts` 提取本周用户与助手文本；编码目录只作路径线索，空画布和目录更新不计成果。Claude、Zcode、Trae、Copilot、DeepSeek、Gemini 在用户指定或有活动线索时检查对应元数据与转录，沿用相同的时间和成果标准。
+
+SSH 仅在用户要求远程或明确远程工作线索、且配置允许时使用。先做短时只读连接探测，失败一次后记录具体错误。区分连接超时、拒绝连接和认证失败，不能把超时解释为未配置密钥；不自动改认证或服务器配置。
+
+## 合并与完成条件
+
+按“真实项目身份 + 实际工作主题”归并：Windows 路径归一化、工作树去重、同一成果跨工具合并。研究报告可从某仓库会话产出，却属于独立架构或选型主题；临时目录名不作为展示项目名。
+
+候选活动均已归为以下一种时，结束读取：有本周成果、仅有请求/待继续、已确认无新增、记录不足。为每个来源记录 `ok / empty / missing / partial / failed / not_requested` 及简短原因，供最后判断覆盖是否影响正文。
